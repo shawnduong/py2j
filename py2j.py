@@ -38,9 +38,23 @@ class Parser:
 
 			line = self.yaml[i]["data"]
 
-			# Stub.
-			if False:
-				pass
+			# Block association means a recursive call.
+			if i+1 < stop and self.yaml[i]["indent"] < self.yaml[i+1]["indent"]:
+
+				# Get the key name.
+				key = self.strip(line.split(":")[0])
+
+				# Find the recursive range's end.
+				for j in range(i+1, stop):
+					if self.yaml[j]["indent"] <= self.yaml[i]["indent"]:
+						break
+
+				# Perform a recursive call.
+				output[key] = self.parse(i+1, j+1)
+
+				# Skip over the block.
+				i = j
+				continue
 
 			# Basic association.
 			elif ": " in line:

@@ -18,10 +18,20 @@ class Parser:
 		"""
 
 		# [{"data": content, "indent": INDENT(content)}, ...]
-		return [
-			{"data": l.split("#")[0], "indent": INDENT(l)}
-			for l in yaml.split("\n")
-		]
+		output = []
+		for l in yaml.split("\n"):
+
+			# Read the line into a dictionary.
+			line = {"data": l.split("#")[0], "indent": INDENT(l)}
+
+			# Exclude empty lines.
+			if len(self.strip(line["data"])) > 0:
+				output.append(line)
+
+		# Backstop for recursion.
+		output.append({"data": "", "indent": 0})
+
+		return output
 
 	def parse(self, start: int, stop: int) -> Union[dict, list]:
 		"""
@@ -52,8 +62,12 @@ class Parser:
 					if self.yaml[j]["indent"] <= self.yaml[i]["indent"]:
 						break
 
+				# Hitting the backstop should include the last item.
+				if j == stop-1:
+					j += 1
+
 				# Perform a recursive call.
-				output[key] = self.parse(i+1, j+1)
+				output[key] = self.parse(i+1, j)
 
 				# Skip over the block.
 				i = j

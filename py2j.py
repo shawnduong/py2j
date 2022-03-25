@@ -32,14 +32,17 @@ class Parser:
 		# Output is a dictionary by default, but may change to a list later.
 		output = {}
 
-		# Iterate from [start. stop)
+		# Iterate from [start, stop)
 		i = start
 		while i < stop:
 
 			line = self.yaml[i]["data"]
+			l = self.strip(line)
 
 			# Block association means a recursive call.
-			if i+1 < stop and self.yaml[i]["indent"] < self.yaml[i+1]["indent"]:
+			if (i+1 < stop and self.yaml[i]["indent"] < self.yaml[i+1]["indent"]
+				and not l.startswith("- ")
+			):
 
 				# Get the key name.
 				key = self.strip(line.split(":")[0])
@@ -56,31 +59,51 @@ class Parser:
 				i = j
 				continue
 
+			# List item.
+			elif l.startswith("- "):
+
+				# Remove the excess whitespace and hyphen from the line.
+				self.yaml[i]["data"] = self.strip(self.yaml[i]["data"])[2:]
+				self.yaml[i]["indent"] += 2
+
+				j = 0
+
+				# Find the recursive range's end.
+				for j in range(i+1, stop):
+					if self.yaml[j]["indent"] < self.yaml[i]["indent"]:
+						break
+
+				# Change the output type to a list if it isn't already.
+				if type(output) is dict:
+					output = []
+
+				# Single list item.
+				if j == i+1:
+					output.append(self.strip(l[2:]))
+
+				# Block list item.
+				else:
+					item = self.parse(i, j)
+					output.append(item)
+					i = j
+					continue
+
 			# Basic association.
 			elif ": " in line:
 				k, v = self.association(i)
 				output[k] = v
-
-			# List item.
-			elif (l:=self.strip(line)).startswith("-"):
-
-				# Change the output type to a list.
-				if type(output) is dict:
-					output = []
-
-				output.append(self.strip(l[1:]))
 
 			# Move to the next line.
 			i += 1
 
 		return output
 
-	def association(self, line: int) -> tuple:
+	def association(self, index: int) -> tuple:
 		"""
-		Basic association given a line number returns key, value.
+		Basic association given a line index returns key, value.
 		"""
 
-		tokens = self.yaml[line]["data"].split(": ")
+		tokens = self.yaml[index]["data"].split(": ")
 
 		key = self.strip(tokens[0])
 		value = self.strip(": ".join(tokens[1::]))

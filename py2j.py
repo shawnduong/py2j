@@ -132,15 +132,19 @@ class Parser:
 
 		s = s.lstrip().rstrip()
 
+		# Handle booleans true/false/yes/no.
+		if s.lower() == "true" or s.lower() == "yes":
+			return True
+		elif s.lower() == "false" or s.lower() == "no":
+			return False
+
+		# Get rid of quote pairs.
 		if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
 			s = s[1:-1]
 
+		# Convert integers.
 		if s.isnumeric():
 			return int(s)
-		elif s.lower() == "true":
-			return True
-		elif s.lower() == "false":
-			return False
 
 		return s
 

@@ -61,6 +61,15 @@ class Parser:
 				k, v = self.association(i)
 				output[k] = v
 
+			# List item.
+			elif (l:=self.strip(line)).startswith("-"):
+
+				# Change the output type to a list.
+				if type(output) is dict:
+					output = []
+
+				output.append(self.strip(l[1:]))
+
 			# Move to the next line.
 			i += 1
 
@@ -78,15 +87,23 @@ class Parser:
 
 		return key, value
 
-	def strip(self, s: str) -> str:
+	def strip(self, s: str) -> Union[str, int, bool]:
 		"""
-		Strip a string s of excess whitespace and existing quote pairs.
+		Strip a string s of excess whitespace and existing quote pairs. If it
+		is an int or bool, return it as such.
 		"""
 
 		s = s.lstrip().rstrip()
 
 		if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
 			s = s[1:-1]
+
+		if s.isnumeric():
+			return int(s)
+		elif s.lower() == "true":
+			return True
+		elif s.lower() == "false":
+			return False
 
 		return s
 

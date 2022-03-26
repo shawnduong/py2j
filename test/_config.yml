@@ -1,0 +1,28 @@
+# Basic information.
+title: Shawn Duong
+blog: "shawn@home:~/blog"
+description: Hacker. Programmer. Student. Teacher. That's me, Shawn Duong.
+baseurl: ""
+
+# Contact information.
+email: business.shawnd@pm.me
+twitter: shawndxyz
+github: shawnduong
+
+# Collections.
+collections:
+  learn:
+    output: true
+    permalink: /:collection/:title
+  projects:
+    output: true
+    permalink: /:collection/:title
+
+# Paginator setup.
+permalink: /blog/:year-:month-:day/:title
+paginate: 8
+paginate_path: /blog/:num
+
+# Plugins.
+plugins:
+  - jekyll-paginate

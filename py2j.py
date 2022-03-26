@@ -74,7 +74,7 @@ class Parser:
 				i = j
 				continue
 
-			# List item.
+			# List item means a recursive call.
 			elif l.startswith("- "):
 
 				# Remove the excess whitespace and hyphen from the line.
@@ -107,6 +107,10 @@ class Parser:
 			elif l.startswith("["):
 				output = [self.strip(i) for i in l.strip("[]").split(",")]
 
+			# Inline associations.
+			elif l.startswith("{"):
+				output = self.inline_association(i)
+
 			# Basic association.
 			elif ": " in line:
 				k, v = self.association(i)
@@ -128,6 +132,20 @@ class Parser:
 		value = self.strip(": ".join(tokens[1::]))
 
 		return key, value
+
+	def inline_association(self, index: int) -> dict:
+		"""
+		Inline association given a line index returns a dict of key:value.
+		"""
+
+		output = {}
+		lines = self.strip(self.yaml[index]["data"][1:-1]).split(",")
+
+		for line in lines:
+			tokens = line.split(": ")
+			output[self.strip(tokens[0])] = self.strip(": ".join(tokens[1::]))
+
+		return output
 
 	def strip(self, s: str) -> Union[str, int, bool]:
 		"""

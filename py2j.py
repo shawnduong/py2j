@@ -151,6 +151,10 @@ class Parser:
 		key = self.strip(tokens[0])
 		value = self.strip(": ".join(tokens[1::]))
 
+		# Inline list item.
+		if str(value).startswith("["):
+			value = [self.strip(i) for i in value.strip("[]").split(",")]
+
 		return key, value
 
 	def inline_association(self, index: int) -> dict:

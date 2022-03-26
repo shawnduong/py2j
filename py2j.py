@@ -102,6 +102,10 @@ class Parser:
 					i = j
 					continue
 
+			# Inline list item.
+			elif l.startswith("["):
+				output = [self.strip(i) for i in l.strip("[]").split(",")]
+
 			# Basic association.
 			elif ": " in line:
 				k, v = self.association(i)

@@ -77,10 +77,10 @@ class Parser:
 			elif l.startswith("- "):
 
 				# Remove the excess whitespace and hyphen from the line.
-				self.yaml[i]["data"] = self.strip(self.yaml[i]["data"])[2:]
+				self.yaml[i]["data"] = self.strip(l[2:])
 				self.yaml[i]["indent"] += 2
 
-				j = 0
+				j = i
 
 				# Find the recursive range's end.
 				for j in range(i+1, stop):
@@ -92,8 +92,8 @@ class Parser:
 					output = []
 
 				# Single list item.
-				if j == i+1:
-					output.append(self.strip(l[2:]))
+				if j <= i+1:
+					output.append(self.yaml[i]["data"])
 
 				# Block list item.
 				else:

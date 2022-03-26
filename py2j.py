@@ -23,9 +23,10 @@ class Parser:
 
 			# Read the line into a dictionary.
 			line = {"data": l.split("#")[0], "indent": INDENT(l)}
+			l = self.strip(line["data"])
 
-			# Exclude empty lines.
-			if len(self.strip(line["data"])) > 0:
+			# Exclude empty lines and document headers.
+			if len(l) > 0 and not l.startswith("---"):
 				output.append(line)
 
 		# Backstop for recursion.

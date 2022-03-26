@@ -17,6 +17,9 @@ class Parser:
 		and the indentation level of each meaningful line.
 		"""
 
+		# Tracker variable for whether or not l is within a ">" or "|"
+		inMultiLine, indentation = False, None
+
 		# [{"data": content, "indent": INDENT(content)}, ...]
 		output = []
 		for l in yaml.split("\n"):
@@ -25,8 +28,16 @@ class Parser:
 			line = {"data": l.split("#")[0], "indent": INDENT(l)}
 			l = self.strip(line["data"])
 
+			# Escape multi-line.
+			if inMultiLine and 0 < line["indent"] <= indentation:
+				inMultiLine, indentation = False, None
+
+			# Preserve empty lines in multi-line strings.
+			if l.endswith(">") or l.endswith("|"):
+				inMultiLine, indentation = True, line["indent"]
+
 			# Exclude empty lines and document headers.
-			if len(l) > 0 and not l.startswith("---"):
+			if inMultiLine or (len(l) > 0 and not l.startswith("---")):
 				output.append(line)
 
 		# Backstop for recursion.
@@ -50,8 +61,17 @@ class Parser:
 			line = self.yaml[i]["data"]
 			l = self.strip(line)
 
+			# Multi-line string.
+			if l.endswith("|") or l.endswith(">"):
+
+				# Read the lines and skip over them.
+				string, n = self.multi_line(i)
+				output.update(string)
+				i += n
+				continue
+
 			# Block association means a recursive call.
-			if (i+1 < stop and self.yaml[i]["indent"] < self.yaml[i+1]["indent"]
+			elif (i+1 < stop and self.yaml[i]["indent"] < self.yaml[i+1]["indent"]
 				and not l.startswith("- ")
 			):
 
@@ -147,7 +167,57 @@ class Parser:
 
 		return output
 
-	def strip(self, s: str) -> Union[str, int, bool]:
+	def multi_line(self, index: int) -> tuple:
+		"""
+		Multi-line string reads starting from the index of the key, and returns
+		{key:string}, n where n is the number of string lines read.
+		"""
+
+		# ">" means don't preserve newlines, while "|" means preserve.
+		if self.strip(self.yaml[index]["data"]).endswith(">"):
+			preserve = False
+		else:
+			preserve = True
+
+		string = ""
+
+		# Read the multi-line string.
+		for i in range(index+1, len(self.yaml)):
+
+			# Break upon unindenting.
+			if self.yaml[i]["indent"] <= self.yaml[index]["indent"]:
+
+				blankText = False
+
+				# Make sure that this isn't just a blank line in a text.
+				for j in range(i, len(self.yaml)):
+					if self.yaml[j]["indent"] >= self.yaml[index+1]["indent"]:
+						blankText = True
+						break
+
+				# Exit the loop with i at the last line.
+				if not blankText:
+					i -= 1
+					break
+
+				# Strip the last space and replace it with a newline.
+				else:
+					string = string[:-1] + "\n"
+					continue
+
+			string += " " * (self.yaml[i]["indent"] - self.yaml[index+1]["indent"])
+			string += self.strip(self.yaml[i]["data"], preserveQuotes=True)
+
+			if preserve:
+				string += "\n"
+			else:
+				string += " "
+
+		string = string[:-1] + "\n"
+
+		return {"data": string}, i - index
+
+	def strip(self, s: str, preserveQuotes: bool=False) -> Union[str, int, bool]:
 		"""
 		Strip a string s of excess whitespace and existing quote pairs. If it
 		is an int or bool, return it as such.
@@ -162,7 +232,9 @@ class Parser:
 			return False
 
 		# Get rid of quote pairs.
-		if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+		if preserveQuotes:
+			pass
+		elif (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
 			s = s[1:-1]
 
 		# Convert integers.

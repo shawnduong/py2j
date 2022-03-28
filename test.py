@@ -6,14 +6,22 @@ import os
 from py2j import parse_f
 from termcolor import colored
 
-ROOT = os.path.dirname(os.path.realpath(__file__)) + "/test/"
+def test(name: str, path: str):
+	"""
+	Run all test cases within a given directory. Test cases should end in
+	".yml" and their expected outputs should be in the same directory and end
+	in ".json"
+	"""
 
-def main():
+	if not os.path.exists(path):
+		return
 
 	passed = 0
 	total = 0
 
-	for yml in sorted([ROOT+f for f in os.listdir(ROOT) if f.endswith(".yml")]):
+	print(f"-- TEST SET: {name} --")
+
+	for yml in sorted([path+f for f in os.listdir(path) if f.endswith(".yml")]):
 
 		print(f":: Testing {yml}... ", end="")
 		result = parse_f(yml)
@@ -36,6 +44,15 @@ def main():
 		total += 1
 
 	print(f":: Passed {passed}/{total}.")
+
+def main():
+
+	# Run included and proprietary test cases.
+	root = os.path.dirname(os.path.realpath(__file__)) + "/test/"
+	secret = root + "secret/"
+
+	test("STANDARD", root)
+	test("PROPRIETARY", secret)
 
 if __name__ == "__main__":
 	main()

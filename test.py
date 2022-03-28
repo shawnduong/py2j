@@ -19,11 +19,10 @@ def test(name: str, path: str):
 	passed = 0
 	total = 0
 
-	print(f"-- TEST SET: {name} --")
+	print(f"-- SET: {name} --")
 
 	for yml in sorted([path+f for f in os.listdir(path) if f.endswith(".yml")]):
 
-		print(f":: Testing {yml}... ", end="")
 		result = parse_f(yml)
 
 		with open(yml[:-4] + ".json", "r") as f:
@@ -31,15 +30,17 @@ def test(name: str, path: str):
 
 		if result != expected:
 
-			print(colored("failed.", "red"))
+			print(":: %s: " % colored("FAIL", "red"), end="")
 			print("-- EXPECTED --")
 			print(expected)
 			print("-- RESULT --")
 			print(result)
 
 		else:
-			print(colored("passed.", "green"))
+			print(":: %s: " % colored("PASS", "green"), end="")
 			passed += 1
+
+		print(yml.split("/")[-1][:-4])
 
 		total += 1
 

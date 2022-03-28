@@ -30,17 +30,15 @@ def test(name: str, path: str):
 
 		if result != expected:
 
-			print(":: %s: " % colored("FAIL", "red"), end="")
+			print(":: %s:" % colored("FAILED", "red"), yml.split("/")[-1][:-4])
 			print("-- EXPECTED --")
 			print(expected)
 			print("-- RESULT --")
 			print(result)
 
 		else:
-			print(":: %s: " % colored("PASS", "green"), end="")
+			print(":: %s:" % colored("PASSED", "green"), yml.split("/")[-1][:-4])
 			passed += 1
-
-		print(yml.split("/")[-1][:-4])
 
 		total += 1
 
